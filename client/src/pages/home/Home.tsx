@@ -3,10 +3,10 @@ import MessageContainer from '../../components/messages/MessageContainer';
 const Home =() => {
 
     return  (
-<div className='bg-white h-screen p-4'>
+<div className='bg-white h-full p-4  ' >
     <h1 className='text-black font-bold text-2xl mb-4' > Messaging </h1>
-    <div className='flex items-center justify-center mb-4'>
-    <div className="border-2 border-gray-400 flex" style={{ width: '1000px', height: '600px' }} >
+    <div className='items-center justify-center mb-4 flex '>
+    <div className="border-2 border-gray-400 flex  h-700 w-900"  >
         <Sidebar />
         <MessageContainer />
     </div>
