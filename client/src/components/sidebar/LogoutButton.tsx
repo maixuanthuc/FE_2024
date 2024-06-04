@@ -6,7 +6,8 @@ const LogoutButton = () => {
       <div className=''>
         <CiLogout />
       </div>
-      <p className='ml-2 text-sm ' >Đăng xuất</p>
+        
+      <p className='ml-2 text-sm ' ><a href="/login">Đăng xuất</a></p>
     </div>
   )
 }

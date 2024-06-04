@@ -16,17 +16,16 @@ function App() {
         setUserId(id);
     }
     return (
-        // <Router>
-        //     <Routes>
-        //         <Route path="/login" element={<Login />} />
-        //         <Route path="/chat" element={<Home />} />
-        //         <Route path="/reg" element={<Register />} />
-        //
-        //     </Routes>
-        // </Router>
-<div>
-    1
-</div>
+        <Router>
+            <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/chat" element={<Home />} />
+                <Route path="/reg" element={<Register />} />
+                <Route path="/" element={<Login />} />
+
+            </Routes>
+        </Router>
+
     );
 }
 
