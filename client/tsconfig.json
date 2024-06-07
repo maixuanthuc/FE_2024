@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "target": "es5",
+  
     "lib": [
       "dom",
       "dom.iterable",
@@ -23,8 +24,6 @@
   "include": [
     "src"
   ],
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "isolatedModules": false
-  }
+  "extends": "../tsconfig.json"
+ 
 }
