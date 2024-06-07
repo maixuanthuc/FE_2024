@@ -1,44 +1,45 @@
-const mysql = require('mysql');
+// server.js
+const io = require('socket.io')(3000);
 
-const config = {
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'fe_2024'  // Ensure this is your actual database name
-};
+// Example users list
+const users = [];
 
-const connection = mysql.createConnection(config);
+io.on('connection', (socket) => {
+    console.log('A user connected');
 
-connection.connect((err) => {
-    if (err) {
-        console.log('Error connecting: ' + err.stack);
-        return;
-    }
-    console.log('Connected successfully to DB.');
+    socket.on('onchat', (data) => {
+        const action = data.action;
+        const event = data.data.event;
 
-``
-    const insertUserQuery = `
-        INSERT INTO users (username, password) VALUES ('testuser1', 'testpassword3');
-    `;
-
-    connection.query(insertUserQuery, (err, results, fields) => {
-        if (err) {
-            console.log('Error inserting user: ' + err.stack);
-            return;
-        }
-        console.log('User inserted successfully.');
-
-        // Close the connection after the query
-        connection.end((err) => {
-            if (err) {
-                console.log('Error ending connection: ' + err.stack);
-                return;
+        if (action === 'onchat') {
+            if (event === 'REGISTER') {
+                const userData = data.data.data;
+                // Handle registration logic here
+                if (users.find(user => user.username === userData.user)) {
+                    socket.emit('registration_response', { status: 'failure', message: 'Username already exists' });
+                } else {
+                    users.push({ username: userData.user, password: userData.pass });
+                    console.log('User registered:', userData);
+                    socket.emit('registration_response', { status: 'success', message: 'Registered successfully' });
+                }
+            } else if (event === 'LOGIN') {
+                const userData = data.data.data;
+                // Handle login logic here
+                const user = users.find(user => user.username === userData.user && user.password === userData.pass);
+                if (user) {
+                    console.log('User logged in:', userData);
+                    socket.emit('login_response', { status: 'success', message: 'Logged in successfully' });
+                } else {
+                    socket.emit('login_response', { status: 'failure', message: 'Invalid username or password' });
+                }
             }
-            console.log('Connection closed successfully.');
-        });
+            // Additional event handling (SEND_CHAT, etc.) can be added here
+        }
+    });
+
+    socket.on('disconnect', () => {
+        console.log('A user disconnected');
     });
 });
 
-module.exports = {
-    connection
-};
+console.log('Socket.io server running on port 3000');

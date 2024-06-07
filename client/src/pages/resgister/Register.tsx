@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-interface LoginProps {
+interface RegisterProps {
   setWebSocket: (ws: WebSocket) => void;
 }
 
-const Login: React.FC<LoginProps> = ({ setWebSocket }) => {
+const Register: React.FC<RegisterProps> = ({ setWebSocket }) => {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [responseMessage, setResponseMessage] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleRegister = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     // Thiết lập kết nối WebSocket
@@ -18,33 +19,33 @@ const Login: React.FC<LoginProps> = ({ setWebSocket }) => {
 
     ws.onopen = () => {
       console.log('WebSocket connected');
-      // Gửi thông tin đăng nhập
-      const loginData = {
+      // Gửi thông tin đăng ký
+      const registerData = {
         action: 'onchat',
         data: {
-          event: "LOGIN",
+          event: "REGISTER",
           data: {
             user: username,
             pass: password
           }
         }
       };
-      const JsonLogin = JSON.stringify(loginData);
-      console.log('Chuỗi JSON login:', JsonLogin);
-      ws.send(JsonLogin);
+      const JsonRegister = JSON.stringify(registerData);
+      console.log('Chuỗi JSON register:', JsonRegister);
+      ws.send(JsonRegister);
     };
 
     ws.onmessage = (event) => {
       const message = JSON.parse(event.data);
       console.log('Received message:', message);
       if (message.status === 'success') {
-        // Đăng nhập thành công
-        alert('Đăng nhập thành công!');
+        // Đăng ký thành công
+        alert('Đăng ký thành công!');
         setWebSocket(ws); // Lưu WebSocket vào state cha
-        navigate('/home');
+        navigate('/login');
       } else {
-        // Đăng nhập thất bại
-        alert('Đăng nhập thất bại! Vui lòng kiểm tra lại thông tin đăng nhập.');
+        // Đăng ký thất bại
+        alert('Đăng ký thất bại! Vui lòng kiểm tra lại thông tin.');
         ws.close();
       }
     };
@@ -58,8 +59,8 @@ const Login: React.FC<LoginProps> = ({ setWebSocket }) => {
   return (
       <div className="bg-gray-100 flex items-center justify-center h-screen">
         <div className="w-full max-w-xs">
-          <h1 className="text-center font-extrabold text-3xl mb-8 text-black">ĐĂNG NHẬP</h1>
-          <form className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" onSubmit={handleSubmit}>
+          <h1 className="text-center font-extrabold text-3xl mb-8 text-black">ĐĂNG KÝ</h1>
+          <form className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" onSubmit={handleRegister}>
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
                 Tài khoản
@@ -92,13 +93,13 @@ const Login: React.FC<LoginProps> = ({ setWebSocket }) => {
                   className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                   type="submit"
               >
-                Đăng nhập
+                Đăng ký
               </button>
               <button
-                  className="bg-slate-400 w-28 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                  className="bg-slate-400 w-28  hover:bg-blue-700 text-white font-bold py-2  rounded focus:outline-none focus:shadow-outline"
                   type="button"
               >
-                <a href="/register">Đăng ký</a>
+                <a href="/login">Đăng nhập</a>
               </button>
             </div>
           </form>
@@ -110,4 +111,4 @@ const Login: React.FC<LoginProps> = ({ setWebSocket }) => {
   );
 };
 
-export default Login;
+export default Register;
