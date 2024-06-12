@@ -1,56 +1,57 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {useWebSocket} from "../../context/WebSocketContext";
 
-interface RegisterProps {
-  setWebSocket: (ws: WebSocket) => void;
-}
+interface RegisterProps {}
 
-const Register: React.FC<RegisterProps> = ({ setWebSocket }) => {
+const Register: React.FC<RegisterProps> = () => {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  const [responseMessage, setResponseMessage] = useState<string | null>(null);
   const navigate = useNavigate();
+  const webSocket = useWebSocket(); // Access WebSocket instance using custom hook
 
   const handleRegister = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    // Thiết lập kết nối WebSocket
-    const ws = new WebSocket('ws://140.238.54.136:8080/chat/chat');
+    if (!webSocket) {
+      console.error('WebSocket is not available!');
+      return;
+    }
 
-    ws.onopen = () => {
+    // Thiết lập kết nối WebSocket
+    webSocket.onopen = () => {
       console.log('WebSocket connected');
       // Gửi thông tin đăng ký
       const registerData = {
         action: 'onchat',
         data: {
-          event: "REGISTER",
+          event: 'REGISTER',
           data: {
             user: username,
-            pass: password
-          }
-        }
+            pass: password,
+          },
+        },
       };
       const JsonRegister = JSON.stringify(registerData);
       console.log('Chuỗi JSON register:', JsonRegister);
-      ws.send(JsonRegister);
+      webSocket.send(JsonRegister);
     };
 
-    ws.onmessage = (event) => {
+    webSocket.onmessage = (event) => {
       const message = JSON.parse(event.data);
       console.log('Received message:', message);
       if (message.status === 'success') {
         // Đăng ký thành công
         alert('Đăng ký thành công!');
-        setWebSocket(ws); // Lưu WebSocket vào state cha
         navigate('/login');
       } else {
         // Đăng ký thất bại
         alert('Đăng ký thất bại! Vui lòng kiểm tra lại thông tin.');
-        ws.close();
+        webSocket.close();
       }
     };
 
-    ws.onerror = (error) => {
+    webSocket.onerror = (error) => {
       console.error('WebSocket error:', error);
       alert('Lỗi kết nối WebSocket!');
     };

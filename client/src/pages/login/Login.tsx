@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useWebSocket } from '../../context/WebSocketContext';
 
 interface LoginProps {
   setWebSocket: (ws: WebSocket) => void;
@@ -9,16 +10,12 @@ const Login: React.FC<LoginProps> = ({ setWebSocket }) => {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const navigate = useNavigate();
+  const webSocket = useWebSocket();
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    // Thiết lập kết nối WebSocket
-    const ws = new WebSocket('ws://140.238.54.136:8080/chat/chat');
-
-    ws.onopen = () => {
-      console.log('WebSocket connected');
-      // Gửi thông tin đăng nhập
+    if (webSocket && webSocket.readyState === WebSocket.OPEN) {
       const loginData = {
         action: 'onchat',
         data: {
@@ -30,29 +27,27 @@ const Login: React.FC<LoginProps> = ({ setWebSocket }) => {
         }
       };
       const JsonLogin = JSON.stringify(loginData);
-      console.log('Chuỗi JSON login:', JsonLogin);
-      ws.send(JsonLogin);
-    };
+      webSocket.send(JsonLogin);
 
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      console.log('Received message:', message);
-      if (message.status === 'success') {
-        // Đăng nhập thành công
-        alert('Đăng nhập thành công!');
-        setWebSocket(ws); // Lưu WebSocket vào state cha
-        navigate('/home');
-      } else {
-        // Đăng nhập thất bại
-        alert('Đăng nhập thất bại! Vui lòng kiểm tra lại thông tin đăng nhập.');
-        ws.close();
-      }
-    };
+      webSocket.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        if (message.status === 'success') {
+          alert('Đăng nhập thành công!');
+          setWebSocket(webSocket);
+          navigate('/home');
+        } else {
+          alert('Đăng nhập thất bại! Vui lòng kiểm tra lại thông tin đăng nhập.');
+          webSocket.close();
+        }
+      };
 
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
+      webSocket.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        alert('Lỗi kết nối WebSocket!');
+      };
+    } else {
       alert('Lỗi kết nối WebSocket!');
-    };
+    }
   };
 
   return (
