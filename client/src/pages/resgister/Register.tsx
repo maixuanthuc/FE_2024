@@ -1,59 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useWebSocket } from '../../context/WebSocketContext';
 
-interface RegisterProps {
-  setWebSocket: (ws: WebSocket) => void;
-}
+interface RegisterProps {}
 
-const Register: React.FC<RegisterProps> = ({ setWebSocket }) => {
+const Register: React.FC<RegisterProps> = () => {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  const [responseMessage, setResponseMessage] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { webSocket, connectWebSocket } = useWebSocket();
+
+  useEffect(() => {
+    connectWebSocket();
+  }, [connectWebSocket]);
 
   const handleRegister = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    // Thiết lập kết nối WebSocket
-    const ws = new WebSocket('ws://140.238.54.136:8080/chat/chat');
-
-    ws.onopen = () => {
-      console.log('WebSocket connected');
-      // Gửi thông tin đăng ký
+    if (webSocket && webSocket.readyState === WebSocket.OPEN) {
       const registerData = {
         action: 'onchat',
         data: {
-          event: "REGISTER",
+          event: 'REGISTER',
           data: {
             user: username,
-            pass: password
-          }
-        }
+            pass: password,
+          },
+        },
       };
       const JsonRegister = JSON.stringify(registerData);
       console.log('Chuỗi JSON register:', JsonRegister);
-      ws.send(JsonRegister);
-    };
+      webSocket.send(JsonRegister);
 
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      console.log('Received message:', message);
-      if (message.status === 'success') {
-        // Đăng ký thành công
-        alert('Đăng ký thành công!');
-        setWebSocket(ws); // Lưu WebSocket vào state cha
-        navigate('/login');
-      } else {
-        // Đăng ký thất bại
-        alert('Đăng ký thất bại! Vui lòng kiểm tra lại thông tin.');
-        ws.close();
-      }
-    };
+      webSocket.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        console.log('Received message:', message);
+        if (message.status === 'success') {
+          // Đăng ký thành công
+          alert('Đăng ký thành công!');
+          navigate('/login');
+        } else {
+          // Đăng ký thất bại
+          alert('Đăng ký thất bại! Vui lòng kiểm tra lại thông tin.');
+          webSocket.close();
+        }
+      };
 
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
+      webSocket.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        alert('Lỗi kết nối WebSocket!');
+      };
+    } else {
       alert('Lỗi kết nối WebSocket!');
-    };
+    }
   };
 
   return (
@@ -96,7 +95,7 @@ const Register: React.FC<RegisterProps> = ({ setWebSocket }) => {
                 Đăng ký
               </button>
               <button
-                  className="bg-slate-400 w-28  hover:bg-blue-700 text-white font-bold py-2  rounded focus:outline-none focus:shadow-outline"
+                  className="bg-slate-400 w-28 hover:bg-blue-700 text-white font-bold py-2 rounded focus:outline-none focus:shadow-outline"
                   type="button"
               >
                 <a href="/login">Đăng nhập</a>
