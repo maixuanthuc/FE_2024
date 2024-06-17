@@ -4,9 +4,10 @@ import { CiLogout } from 'react-icons/ci';
 
 interface LogoutButtonProps {
     webSocket: WebSocket | null;
+    connectWebSocket: () => void;
 }
 
-const LogoutButton: React.FC<LogoutButtonProps> = ({ webSocket }) => {
+const LogoutButton: React.FC<LogoutButtonProps> = ({ webSocket, connectWebSocket }) => {
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -20,6 +21,7 @@ const LogoutButton: React.FC<LogoutButtonProps> = ({ webSocket }) => {
             webSocket.send(JSON.stringify(logoutData));
             webSocket.close();
         }
+        connectWebSocket(); // Kết nối lại WebSocket
         navigate('/login');
     };
 

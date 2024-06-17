@@ -1,11 +1,19 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-const WebSocketContext = createContext<WebSocket | null>(null);
+interface WebSocketContextType {
+    webSocket: WebSocket | null;
+    connectWebSocket: () => void;
+}
+
+const WebSocketContext = createContext<WebSocketContextType | null>(null);
 
 export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [webSocket, setWebSocket] = useState<WebSocket | null>(null);
 
-    useEffect(() => {
+    const connectWebSocket = () => {
+        if (webSocket && (webSocket.readyState === WebSocket.OPEN || webSocket.readyState === WebSocket.CONNECTING)) {
+            return; // WebSocket is already connected or connecting
+        }
         const ws = new WebSocket('ws://140.238.54.136:8080/chat/chat');
         setWebSocket(ws);
 
@@ -21,17 +29,26 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
         ws.onerror = (error) => {
             console.error('WebSocket error:', error);
         };
+    };
 
+    useEffect(() => {
+        connectWebSocket();
         return () => {
-            ws.close();
+            webSocket?.close();
         };
     }, []);
 
     return (
-        <WebSocketContext.Provider value={webSocket}>
+        <WebSocketContext.Provider value={{ webSocket, connectWebSocket }}>
             {children}
         </WebSocketContext.Provider>
     );
 };
 
-export const useWebSocket = () => useContext(WebSocketContext);
+export const useWebSocket = () => {
+    const context = useContext(WebSocketContext);
+    if (!context) {
+        throw new Error('useWebSocket must be used within a WebSocketProvider');
+    }
+    return context;
+};

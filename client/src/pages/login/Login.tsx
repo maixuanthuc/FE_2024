@@ -2,15 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWebSocket } from '../../context/WebSocketContext';
 
-interface LoginProps {
-  setWebSocket: (ws: WebSocket) => void;
-}
+interface LoginProps {}
 
-const Login: React.FC<LoginProps> = ({ setWebSocket }) => {
+const Login: React.FC<LoginProps> = () => {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const navigate = useNavigate();
-  const webSocket = useWebSocket();
+  const { webSocket, connectWebSocket } = useWebSocket();
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -19,34 +17,42 @@ const Login: React.FC<LoginProps> = ({ setWebSocket }) => {
       const loginData = {
         action: 'onchat',
         data: {
-          event: "LOGIN",
+          event: 'LOGIN',
           data: {
             user: username,
-            pass: password
-          }
-        }
+            pass: password,
+          },
+        },
       };
+
       const JsonLogin = JSON.stringify(loginData);
       webSocket.send(JsonLogin);
 
-      webSocket.onmessage = (event) => {
+      const handleWebSocketMessage = (event: MessageEvent) => {
         const message = JSON.parse(event.data);
         if (message.status === 'success') {
           alert('Đăng nhập thành công!');
-          setWebSocket(webSocket);
           navigate('/home');
         } else {
           alert('Đăng nhập thất bại! Vui lòng kiểm tra lại thông tin đăng nhập.');
-          webSocket.close();
         }
       };
 
-      webSocket.onerror = (error) => {
+      const handleWebSocketError = (error: Event) => {
         console.error('WebSocket error:', error);
         alert('Lỗi kết nối WebSocket!');
       };
+
+      webSocket.addEventListener('message', handleWebSocketMessage);
+      webSocket.addEventListener('error', handleWebSocketError);
+
+      return () => {
+        webSocket.removeEventListener('message', handleWebSocketMessage);
+        webSocket.removeEventListener('error', handleWebSocketError);
+      };
     } else {
       alert('Lỗi kết nối WebSocket!');
+      connectWebSocket(); // Reconnect WebSocket if not connected
     }
   };
 

@@ -4,10 +4,7 @@ const Conversations = () => {
   return (
     <div className='flex flex-col py-2'>
       <Conversation />
-      <Conversation />
-      <Conversation />
-      <Conversation />
-      <Conversation />
+
       
       
       
